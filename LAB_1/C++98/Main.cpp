@@ -3,6 +3,9 @@
 #include <sstream>
 #include <Windows.h>
 
+using std::cin;
+using std::cout;
+
 const char* CREATOR = "creator.exe";
 const char* REPORTER = "reporter.exe";
 
@@ -14,20 +17,20 @@ int main()
 	std::string input_bin_filename;
 	long long record_count = 0;
 
-	std::cout << "Enter binary file name:\t";
-	std::cin >> input_bin_filename;
-	std::cout << "Enter record count:\t";
-	std::cin >> record_count;
+	cout << "Enter binary file name:\t";
+	cin >> input_bin_filename;
+	cout << "Enter record count:\t";
+	cin >> record_count;
 
 	start_creator(input_bin_filename, record_count);
 
 
 	std::string report_filename;
 	double hourly_pay = 0.0;
-	std::cout << "\nEnter the report filename:\t";
-	std::cin >> report_filename;
-	std::cout << "Enter the hourly pay:\t";
-	std::cin >> hourly_pay;
+	cout << "\nEnter the report filename:\t";
+	cin >> report_filename;
+	cout << "Enter the hourly pay:\t";
+	cin >> hourly_pay;
 
 	start_reported(input_bin_filename, report_filename, hourly_pay);
 
@@ -44,17 +47,16 @@ void start_creator(const std::string& binary_name, const int& record_count)
 
 	std::stringstream sstream;
 	sstream << CREATOR  << " " << binary_name << " " << record_count;
-	std::cout << sstream.str() << "\n";
-
+	
 	if (!CreateProcess(NULL, (char*)sstream.str().c_str(),
 		NULL, NULL, FALSE, CREATE_NEW_CONSOLE,
 		NULL, NULL, &startup_info, &process_info))
 	{
-		std::cout << "Failed to start a process!\n";
+		cout << "Failed to start a process!\n";
 	}
-	std::cout << "Process started!\n";
+	cout << "Process started!\n";
 	WaitForSingleObject(process_info.hProcess, INFINITE);
-	std::cout << "Process stoped!\n";
+	cout << "Process stoped!\n";
 }
 
 
@@ -75,12 +77,12 @@ void start_reported(const std::string& input_bin_filename,
 			NULL, NULL, FALSE, CREATE_NEW_CONSOLE,
 			NULL, NULL, &startup_info, &process_info))
 		{
-			std::cout << "Failed to start a process!\n";
+			cout << "Failed to start a process!\n";
 		}
 	else
 	{
-		std::cout << "Process started!\n";
+		cout << "Process started!\n";
 		WaitForSingleObject(process_info.hProcess, INFINITE);
-		std::cout << "Process stoped!\n";
+		cout << "Process stoped!\n";
 	}	
 }
