@@ -3,17 +3,23 @@
 
 struct array
 {
-    int* arr;
+    double* arr;
     int size;
-    int min_id;
-    int max_id;
+    int min;
+    int max;
     double average;
 };
 
 void replaceMinMax(array* p_arr)
 {
-    p_arr->arr[p_arr->min_id] = p_arr->average;
-    p_arr->arr[p_arr->max_id] = p_arr->average;
+    for (int i = 0; i < p_arr->size; i++)
+    {
+        if (p_arr->arr[i] == p_arr->max ||
+            p_arr->arr[i] == p_arr->min)
+        {
+            p_arr->arr[i] = p_arr->average;
+        }
+    }
     return;
 }
 
@@ -21,7 +27,7 @@ void print(array* p_arr)
 {
     for (int i = 0; i < p_arr->size-1; i++)
     {
-        printf("%d\t", p_arr->arr[i]);
+        printf("%lf\t", p_arr->arr[i]);
     }
-    printf("%d\n", p_arr->arr[p_arr->size - 1]);
+    printf("%lf\n", p_arr->arr[p_arr->size - 1]);
 }

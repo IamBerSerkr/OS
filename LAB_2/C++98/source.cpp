@@ -21,7 +21,7 @@ int main(void)
         return EDOM;
     }
 
-    int *arr = (int*)malloc(sizeof(int) * size);
+    double *arr = (double*)malloc(sizeof(double) * size);
     if (arr == NULL)
     {
         errno = ENOMEM;
@@ -30,14 +30,12 @@ int main(void)
     }
     for (int i = 0; i < size; i++)
     {
-        scanf("%d", &arr[i]);
+        scanf("%lf", &arr[i]);
     }
 
     array *my_array = (array*)malloc(sizeof(array));
     my_array->arr = arr;
     my_array->size = size;
-    my_array->min_id = 0;
-    my_array->max_id = 0; 
 
     HANDLE hThread_min_max;
     HANDLE hThread_average;
@@ -69,27 +67,28 @@ using std::cout;
 DWORD WINAPI min_max(LPVOID param)
 {
     array* p_arr = (array*)param;
-    int min = p_arr->arr[0];
-    int max = min;
+    double min = p_arr->arr[0];
+    double max = min;
     
     for (int i = 1; i < p_arr->size; i++)
     {
         if (min > p_arr->arr[i])
         {
             min = p_arr->arr[i];
-            p_arr->min_id = i;
         }
         Sleep(7);
         if (max < p_arr->arr[i])
         {
             max = p_arr->arr[i];
-            p_arr->max_id = i;
         }
         Sleep(7);
     }
 
-    printf("The maximum value in the array:\t%d\n", max);
-    printf("The minimum value in the array:\t%d\n", min);
+    p_arr->max = max;
+    p_arr->min = min;
+
+    printf("The maximum value in the array:\t%lf\n", max);
+    printf("The minimum value in the array:\t%lf\n", min);
     
     return 0;
 }
