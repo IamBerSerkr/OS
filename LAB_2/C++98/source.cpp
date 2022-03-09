@@ -55,8 +55,8 @@ int main(void)
     CloseHandle(hThread_min_max);
     CloseHandle(hThread_average);
     
-    // replaceMinMax(my_array);
-    // print(my_array);
+    replaceMinMax(my_array);
+    print(my_array);
     
     delete[] arr;
     delete my_array;
