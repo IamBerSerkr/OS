@@ -2,9 +2,9 @@ struct array
 {
     int* arr;
     int size;
-    int min;
-    int max;
-    int average;
+    int min_id;
+    int max_id;
+    double average;
 };
 
 void replaceMinMax(array* arr);
