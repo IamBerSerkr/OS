@@ -31,7 +31,7 @@ int main()
         return GetLastError();
     }
     
-
+    bool* terminatedThread = new bool[numberOfMakers];
     HANDLE* halteredThreads = new HANDLE[numberOfMakers];
 
     int numberOfHalteredThreads = 0;
@@ -40,6 +40,25 @@ int main()
         WaitForMultipleObjects(numberOfMakers, halteredThreads,
             TRUE, INFINITE);
         PrintArray(arr, dimentions);
+
+        int id = -1;
+        do 
+        {
+            printf("Enter an id of a maker thread to kill:\t");
+            scanf("%d", &id);
+            if (terminatedThread[id] == true)
+            {
+                printf("The thread has been already terminated!\n");
+            }
+        }
+        while(id < 0 && terminatedThread[id] == true);
+
+        SetEvent(threadInfo[id].Terminate);
+        WaitForSingleObject(hThread[id], INFINITE);
+        PrintArray(arr, dimentions);
+
+        terminatedThread[id] = true;
+        halteredThreads++;
     }
     
 
