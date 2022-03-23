@@ -1,8 +1,9 @@
 #include <cstdio>
 #include <Windows.h> 
+#include "threadInfo.h"
 
 int* createNewArray(const int& dimentions);
-void PrintArray(const int*&, const int&);
+void PrintArray(int* const &, const int&);
 
 int main()
 {
@@ -31,9 +32,12 @@ int main()
         return GetLastError();
     }
     
+    HANDLE* hThread = new HANDLE[numberOfMakers];
+    threadInfo* markerInfo = new threadInfo[numberOfMakers];
+
     bool* terminatedThread = new bool[numberOfMakers];
     HANDLE* halteredThreads = new HANDLE[numberOfMakers];
-
+    
     int numberOfHalteredThreads = 0;
     while (numberOfHalteredThreads != numberOfMakers)
     {
@@ -53,7 +57,7 @@ int main()
         }
         while(id < 0 && terminatedThread[id] == true);
 
-        SetEvent(threadInfo[id].Terminate);
+        SetEvent(markerInfo[id].Terminate);
         WaitForSingleObject(hThread[id], INFINITE);
         PrintArray(arr, dimentions);
 
@@ -75,8 +79,9 @@ int* createNewArray(const int& dimentions)
         arr[i] = 0;
     }
     return arr;
+}
 
-void PrintArray(const int*& arr, const int& size)
+void PrintArray(int* const& arr, const int& size)
 {
     for (int i = 0; i < size; i++)
     {

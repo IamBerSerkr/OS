@@ -19,7 +19,7 @@ struct threadInfo
 threadInfo::threadInfo(void)
 {
     this->size = 0;
-    this->arr = nullptr;
+    this->arr = NULL;
     this->idx = -1;
     this->Start = NULL;
     this->Stop = NULL;
