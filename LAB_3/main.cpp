@@ -10,25 +10,24 @@ int main()
     int dimentions = 0; 
     do
     {
+        printf("Enter the size of an array:\t");
         scanf("%d", &dimentions);
     } 
     while (dimentions <= 0);
     
     int *arr = createNewArray(dimentions);
-    for (int i = 0; i < dimentions; i++)
-    {
-        printf("%d\n", arr[i]);
-    }
-    
+       
     int numberOfMakers = 0;
     do
     {
+        printf("Enter a number of marker threads:\t");
         scanf("%d", &numberOfMakers);
     } 
     while (numberOfMakers <= 0);
     
     if (!SetEvent(NULL))
     {
+        printf("Failed Starting an event!");
         return GetLastError();
     }
     
