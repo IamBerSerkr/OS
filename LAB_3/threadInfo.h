@@ -14,6 +14,8 @@ struct threadInfo
     threadInfo(void);
     threadInfo(int* const &, const int&, const int&,
         const HANDLE&, const HANDLE&, const HANDLE&, const HANDLE&);
+
+    threadInfo& operator =(const threadInfo&); 
 };
 
 threadInfo::threadInfo(void)
@@ -32,3 +34,15 @@ threadInfo::threadInfo(int* const & arr, const int& size, const int& idx,
         const HANDLE& Terminate, const HANDLE& Continue)
         :arr(arr), size(size), idx(idx), 
         Start(Start), Stop(Stop), Terminate(Terminate), Continue(Continue){}
+
+threadInfo& threadInfo::operator= (const threadInfo& other)
+{
+    this->arr = other.arr;
+    this->size = other.size;
+    this->idx = other.idx;
+    this->Start = other.Start;
+    this->Stop = other.Stop;
+    this->Terminate = other.Terminate;
+    this->Continue = other.Continue;
+    return *this;
+}
