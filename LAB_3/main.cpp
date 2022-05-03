@@ -39,24 +39,25 @@ int main()
     HANDLE start = CreateEvent(NULL, TRUE, FALSE, NULL);
     if (start == NULL)
     {
-        printf("Failed Starting an event!");
+        printf("Failed Starting an event!\n");
         return GetLastError();
     }
 
     for (int i = 0; i < numberOfMakers; i++)
     {
         HANDLE stop = CreateEvent(NULL, TRUE, FALSE, NULL);
-        markerInfo[i] = threadInfo(arr, dimentions, i, start,
-        stop,
-        CreateEvent(NULL, FALSE, FALSE, NULL),
-        CreateEvent(NULL, FALSE, FALSE, NULL));
 
+        HANDLE *state = new HANDLE[2];
+        state[0] = CreateEvent(NULL, FALSE, FALSE, NULL);
+        state[1] = CreateEvent(NULL, FALSE, FALSE, NULL);
+        markerInfo[i] = threadInfo(arr, dimentions, i + 1, start,
+        stop, state);
         hThread[i] = CreateThread(NULL, 0, markerFucntion, (LPVOID)(&markerInfo[i]), NULL, NULL);
     }
     
     if (!SetEvent(start))
     {
-        printf("Failed Starting an event!");
+        printf("Failed Starting an event!\n");
         return GetLastError();
     }
 
@@ -65,36 +66,42 @@ int main()
     {
         WaitForMultipleObjects(numberOfMakers, halteredThreads,
             TRUE, INFINITE);
+        printf("All threads are halted:\n");
         PrintArray(arr, dimentions);
 
         int id = -1;
         do 
         {
-            printf("Enter an id of a maker thread to kill:\t");
+            printf("\nEnter an id of a maker thread to kill:\t");
             scanf("%d", &id);
-            if (id < numberOfMakers && id > 0 && terminatedThreads[id] == true)
+            if (id > numberOfMakers || id <= 0)
             {
-                printf("The thread has been already terminated!\n");
+                printf("\nPlease enter valid id!\n");
+                continue;
+            }
+            if (terminatedThreads[id - 1] == true)
+            {
+                printf("\nThe thread has been already terminated!\n");
                 continue;
             }
         }
-        while(id < 0 || id >= numberOfMakers);
+        while (id <= 0 || id > numberOfMakers || terminatedThreads[id - 1]);
 
-        SetEvent(markerInfo[id].Terminate);
-        WaitForSingleObject(hThread[id], INFINITE);
+        SetEvent(markerInfo[id-1].TerminateOrContinue[0]);
+        WaitForSingleObject(hThread[id-1], INFINITE);
         PrintArray(arr, dimentions);
 
-        terminatedThreads[id] = true;
+        terminatedThreads[id-1] = true;
         numberOfHalteredThreads++;
 
         for (int i = 0; i < numberOfMakers; ++i) {
 			if (!terminatedThreads[i]) {
 				ResetEvent(markerInfo[i].Stop);
-				SetEvent(markerInfo[i].Terminate);
+				SetEvent(markerInfo[i].TerminateOrContinue[1]);
 			}
 		}
     }
-    
+    printf("All marker threads have been terminated!\n");
 
     delete[] arr;
     delete[] hThread;
@@ -133,8 +140,8 @@ DWORD WINAPI markerFucntion(LPVOID params)
     bool halt_thread = false;
     int numberOfMarkedElements = 0;
 
+    // printf("\nThread #%d started.\n", info->idx);
     WaitForSingleObject(info->Start, INFINITE);
-
     int index = rand() % info->size;
     while (!halt_thread)
     {
@@ -143,6 +150,8 @@ DWORD WINAPI markerFucntion(LPVOID params)
         if (info->arr[index] == 0)
         {
             Sleep(5);
+            // printf("thread #%d: index: %d, changed %d to %d\n", info->idx, index,
+            //  info->arr[index], info->idx);
 			info->arr[index] = info->idx;
 			LeaveCriticalSection(&cs);
 			numberOfMarkedElements++;
@@ -150,12 +159,12 @@ DWORD WINAPI markerFucntion(LPVOID params)
         }
         else
         {
-            printf("LOG: thread # %d:\nNumber of marked elements:\t%d\nCan not mark the elenemt with index %d", 
-            info->idx, numberOfMarkedElements, index);
+            // printf("thread #%d: Number of marked elements:\t%d;Can not mark the elenemt with index %d\n", 
+            // info->idx, numberOfMarkedElements, index);
             LeaveCriticalSection(&cs);
             SetEvent(info->Stop);
 
-            int mainsResponse = WaitForSingleObject(info->Terminate, INFINITE) - WAIT_OBJECT_0;
+            int mainsResponse = WaitForMultipleObjects(2, info->TerminateOrContinue, FALSE, INFINITE) - WAIT_OBJECT_0;
             if (mainsResponse == 0)
             {
                 halt_thread = true;
