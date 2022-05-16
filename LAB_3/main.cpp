@@ -10,6 +10,7 @@ DWORD WINAPI markerFucntion(LPVOID params);
 
 int main()
 {
+    // read input from the terminal;
     int dimentions = 0; 
     do
     {
@@ -20,21 +21,21 @@ int main()
     
     int *arr = createNewArray(dimentions);
        
-    int numberOfMakers = 0;
+    int numberOfMarkers = 0;
     do
     {
         printf("Enter a number of marker threads:\t");
-        scanf("%d", &numberOfMakers);
+        scanf("%d", &numberOfMarkers);
     } 
-    while (numberOfMakers <= 0);
-
+    while (numberOfMarkers <= 0);
+    
     InitializeCriticalSection(&cs);
         
-    HANDLE* hThread = new HANDLE[numberOfMakers];
-    threadInfo* markerInfo = new threadInfo[numberOfMakers];
+    HANDLE* hThread = new HANDLE[numberOfMarkers];
+    threadInfo* markerInfo = new threadInfo[numberOfMarkers];
 
-    bool* terminatedThreads = new bool[numberOfMakers];
-    HANDLE* halteredThreads = new HANDLE[numberOfMakers];
+    bool* terminatedThreads = new bool[numberOfMarkers];
+    HANDLE* halteredThreads = new HANDLE[numberOfMarkers];
     
     HANDLE start = CreateEvent(NULL, TRUE, FALSE, NULL);
     if (start == NULL)
@@ -43,38 +44,41 @@ int main()
         return GetLastError();
     }
 
-    for (int i = 0; i < numberOfMakers; i++)
+    for (int i = 0; i < numberOfMarkers; i++)
     {
         HANDLE stop = CreateEvent(NULL, TRUE, FALSE, NULL);
-
         HANDLE *state = new HANDLE[2];
         state[0] = CreateEvent(NULL, FALSE, FALSE, NULL);
         state[1] = CreateEvent(NULL, FALSE, FALSE, NULL);
         markerInfo[i] = threadInfo(arr, dimentions, i + 1, start,
         stop, state);
+        halteredThreads[i] = markerInfo[i].Stop = CreateEvent(NULL, TRUE, FALSE, NULL);
         hThread[i] = CreateThread(NULL, 0, markerFucntion, (LPVOID)(&markerInfo[i]), NULL, NULL);
+        
+        terminatedThreads[i] = false;
     }
-    
+       
     if (!SetEvent(start))
     {
         printf("Failed Starting an event!\n");
         return GetLastError();
     }
-
     int numberOfHalteredThreads = 0;
-    while (numberOfHalteredThreads != numberOfMakers)
+    while (numberOfHalteredThreads != numberOfMarkers)
     {
-        WaitForMultipleObjects(numberOfMakers, halteredThreads,
+        WaitForMultipleObjects(numberOfMarkers, halteredThreads,
             TRUE, INFINITE);
-        printf("All threads are halted:\n");
+        fflush(stdout);
+        printf("\nAll threads are halted:\n");
         PrintArray(arr, dimentions);
 
         int id = -1;
-        do 
+        
+        while (id <= 0 || id > numberOfMarkers)
         {
             printf("\nEnter an id of a maker thread to kill:\t");
             scanf("%d", &id);
-            if (id > numberOfMakers || id <= 0)
+            if (id > numberOfMarkers || id <= 0)
             {
                 printf("\nPlease enter valid id!\n");
                 continue;
@@ -84,17 +88,19 @@ int main()
                 printf("\nThe thread has been already terminated!\n");
                 continue;
             }
+            else
+            { 
+                SetEvent(markerInfo[id-1].TerminateOrContinue[0]);
+                WaitForSingleObject(hThread[id-1], INFINITE);
+                PrintArray(arr, dimentions);
+
+                terminatedThreads[id-1] = true;
+                numberOfHalteredThreads++;
+                break;
+            }
         }
-        while (id <= 0 || id > numberOfMakers || terminatedThreads[id - 1]);
 
-        SetEvent(markerInfo[id-1].TerminateOrContinue[0]);
-        WaitForSingleObject(hThread[id-1], INFINITE);
-        PrintArray(arr, dimentions);
-
-        terminatedThreads[id-1] = true;
-        numberOfHalteredThreads++;
-
-        for (int i = 0; i < numberOfMakers; ++i) {
+        for (int i = 0; i < numberOfMarkers; ++i) {
 			if (!terminatedThreads[i]) {
 				ResetEvent(markerInfo[i].Stop);
 				SetEvent(markerInfo[i].TerminateOrContinue[1]);
@@ -102,6 +108,24 @@ int main()
 		}
     }
     printf("All marker threads have been terminated!\n");
+
+
+    if (!CloseHandle(start))
+    {
+        printf("Failed to close handle!\n");
+        return GetLastError();
+    }
+    for (int i = 0; i < numberOfMarkers; i++)
+    {
+        bool closureResult = CloseHandle(hThread[i]) &&  CloseHandle(halteredThreads[i]) &&
+            CloseHandle(markerInfo[i].TerminateOrContinue[0]) && CloseHandle(markerInfo[i].TerminateOrContinue[1]);
+        if (!closureResult)
+        {
+            printf("Failed to close handle!\n");
+            return GetLastError();
+        }
+    }
+
 
     delete[] arr;
     delete[] hThread;
@@ -125,11 +149,13 @@ int* createNewArray(const int& dimentions)
 
 void PrintArray(int* const& arr, const int& size)
 {
+    EnterCriticalSection(&cs);
     for (int i = 0; i < size - 1; i++)
     {
         printf("%d\t", arr[i]);
     }
     printf("%d\n", arr[size - 1]);
+    LeaveCriticalSection(&cs);
     return;    
 }
 
@@ -140,30 +166,30 @@ DWORD WINAPI markerFucntion(LPVOID params)
     bool halt_thread = false;
     int numberOfMarkedElements = 0;
 
-    // printf("\nThread #%d started.\n", info->idx);
     WaitForSingleObject(info->Start, INFINITE);
-    int index = rand() % info->size;
+    int index = -1;
     while (!halt_thread)
     {
         index = rand() % info->size;
         EnterCriticalSection(&cs);
         if (info->arr[index] == 0)
         {
-            Sleep(5);
-            // printf("thread #%d: index: %d, changed %d to %d\n", info->idx, index,
-            //  info->arr[index], info->idx);
+            printf("thread #%d: index: %d, changed %d to %d\n", info->idx, index,
+             info->arr[index], info->idx);
 			info->arr[index] = info->idx;
-			LeaveCriticalSection(&cs);
+            Sleep(5);
 			numberOfMarkedElements++;
+			LeaveCriticalSection(&cs);
 			Sleep(5);
         }
         else
         {
-            // printf("thread #%d: Number of marked elements:\t%d;Can not mark the elenemt with index %d\n", 
-            // info->idx, numberOfMarkedElements, index);
+            printf("[REPORT]thread #%d: Number of marked elements:\t%d;\tCan not mark the elenemt with index %d\n", 
+            info->idx, numberOfMarkedElements, index);
+            fflush(stdout);
             LeaveCriticalSection(&cs);
-            SetEvent(info->Stop);
 
+            SetEvent(info->Stop);
             int mainsResponse = WaitForMultipleObjects(2, info->TerminateOrContinue, FALSE, INFINITE) - WAIT_OBJECT_0;
             if (mainsResponse == 0)
             {
