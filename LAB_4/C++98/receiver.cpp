@@ -1,5 +1,8 @@
 #include <cstdio>
+#include <cstring>
 #include <Windows.h>
+
+const char* binaryFileExtention = ".bin";
 
 int main()
 {
@@ -20,6 +23,30 @@ int main()
         }
     } while (numberOfRecords <= 0);
 
+    char *path = nullptr;
+    strcpy(path, binFileNameBuffer);
+    strcat(path, binaryFileExtention);
+    FILE *fptr = fopen(path, "wb"); 
+    fclose(fptr);
 
+    int numberOfProcesses = 0;
+
+    do
+    {
+        printf_s("\nEnter number of processes:\t");
+        scanf_s("%d", &numberOfProcesses);
+
+        if (numberOfProcesses <=  0)
+        {
+            printf_s("Invalid input! Number of processes must be greated than zero");
+        }
+    } while (numberOfProcesses <= 0);
+
+    HANDLE* senderHandle = (HANDLE*)malloc(sizeof(HANDLE) * numberOfProcesses); 
+
+
+    HANDLE mutex = CreateMutex(NULL, FALSE, L"MUTEX");
+    
+    free(senderHandle);
+  
     return 0;
-}
