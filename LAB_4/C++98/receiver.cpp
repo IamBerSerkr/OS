@@ -37,8 +37,6 @@ int main()
         perror("Error! Failed creating a path string!\n");
         return ECANCELED;
     }
-    strcpy(path, binFileNameBuffer);
-    strcat(path, kBinaryFileExtention);
     FILE *fptr = fopen(path, "wb"); 
     fclose(fptr);
 
@@ -112,6 +110,28 @@ int main()
 
     // wait for all processes
     WaitForMultipleObjects(numberOfProcesses, readinessFlag, TRUE, INFINITE);
+
+    // logic loop
+    int userChoice = -1;
+    while (true)
+    {
+        printf_s("1. Read message\n2. Exit");
+        scanf_s("%d", &userChoice);
+        
+        if (userChoice != 1 || userChoice != 2)
+        {
+            printf_s("Invalid choice! Please choose between option 1 and 2:\n");
+            continue;
+        }
+        if (userChoice == 2)
+        {
+            break;
+        }
+
+        
+
+    }
+    
 
     free(readinessFlag);
     CloseHandle(mutex);
