@@ -7,9 +7,9 @@
 #include <Windows.h>
 
 const char* kBinaryFileExtention = ".bin";
-const wchar_t* kSenderExe =  L"sender.exe";
+const char* kSenderExe =  "sender.exe";
 
-HANDLE START_PROCESS(const wchar_t*);
+HANDLE START_PROCESS(char*);
 
 int main()
 {
@@ -69,19 +69,20 @@ int main()
     // create processes
     HANDLE* readinessFlag = (HANDLE*)malloc(sizeof(HANDLE) * numberOfProcesses);
 
-    wchar_t wcharPathBuffer[256];
-    mbstowcs(wcharPathBuffer, path, 256);
+    char charPathBuffer[256];
+    // mbstowcs(wcharPathBuffer, path, 256);
+    len = sprintf_s(charPathBuffer, "%s", path);
     for (int i = 0; i < numberOfProcesses; i++)
     {
-        wchar_t commandLineArguments[250];
-        len = swprintf_s(commandLineArguments, L"%s %s %d %d", 
-            kSenderExe, wcharPathBuffer, numberOfRecords, i);
+        char commandLineArguments[250];
+        len = sprintf_s(commandLineArguments, "%s %s %d %d", 
+            kSenderExe, charPathBuffer, numberOfRecords, i);
         if (len == -1)
         {
             perror("Error! Failed creating a command line arguments string!\n");
             return ECANCELED;
         }
-        // wprintf_s(L"%i: %ls\n", i, commandLineArguments);
+        printf_s("%i: %s\n", i, commandLineArguments);
 
         // creating ready 
         char readinessEventName[256];
@@ -127,22 +128,32 @@ int main()
         {
             break;
         }
+        WaitForSingleObject(readSemaphore, INFINITE);
+        WaitForSingleObject(mutex, INFINITE);
 
-        
-
+        fptr = fopen(path, "rb");
+        printf_s("New message!");
+        fclose(fptr);
+        ReleaseMutex(mutex);
+        ReleaseSemaphore(writeSemaphore, 1, NULL);        
     }
     
+    for (int i = 0; i < numberOfProcesses; i++)
+    {
+        CloseHandle(senderHandle[i]);
+        CloseHandle(readinessFlag[i]);
+    }
 
     free(readinessFlag);
     CloseHandle(mutex);
     CloseHandle(writeSemaphore);
     CloseHandle(readSemaphore);
     free(senderHandle);
-  
+    free(fptr);
     return 0;
 }
 
-HANDLE START_PROCESS(const wchar_t* args)
+HANDLE START_PROCESS(char* args)
 {
     STARTUPINFO startupInfo;
     PROCESS_INFORMATION processInformation;
