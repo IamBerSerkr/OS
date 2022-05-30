@@ -5,7 +5,6 @@
 #include <Windows.h>
 #include "fileManipulations.h"
 
-// const char* kBinaryFileExtention = ".txt";
 const char* kBinaryFileExtention = ".bin";
 const char* kSenderExe =  "sender.exe";
 
@@ -40,7 +39,6 @@ int main()
         return ECANCELED;
     }
     
-    // FILE *fptr = fopen(path, "w"); 
     FILE *fptr = fopen(path, "wb"); 
     fclose(fptr);
 
@@ -136,10 +134,8 @@ int main()
         WaitForSingleObject(mutex, INFINITE);
 
         
-        // fptr = fopen(path, "r");
         fptr = fopen(path, "rb");
         fseek(fptr, 0, SEEK_SET);
-        // fscanf(fptr, "%s", messageBuffer);
         fread(messageBuffer, MessageLength, 1, fptr);
         printf_s("\nNew message:\t%s\n", messageBuffer);
 

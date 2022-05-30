@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <Windows.h>
 
+const int MessageLength = 20;
 
 int main(int argc, char* argv[])
 {
@@ -32,11 +33,10 @@ int main(int argc, char* argv[])
 
     SetEvent(readiness);
     
-    // FILE* fptr = fopen(argv[1], "a");
     FILE* fptr = fopen(argv[1], "ab");
     
     int userChoice = -1;
-    char messageBuffer[20];
+    char messageBuffer[MessageLength];
 
     while(true)
     {
@@ -59,13 +59,9 @@ int main(int argc, char* argv[])
 
         WaitForSingleObject(writeSemaphore, INFINITE);
         WaitForSingleObject(mutex, INFINITE);
-        
-        // fopen(argv[1], "a");        
-        // fprintf_s(fptr, "%s\n", messageBuffer);
-        // fflush(fptr);
 
         fptr = fopen(argv[1], "ab");
-        fwrite(messageBuffer, 20, 1, fptr);
+        fwrite(messageBuffer, MessageLength, 1, fptr);
         fclose(fptr);
 
         printf_s("The Message: %s\n", messageBuffer);
