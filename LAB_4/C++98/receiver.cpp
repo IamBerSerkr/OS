@@ -3,10 +3,13 @@
 #include <cstdlib>
 #include <cerrno>
 #include <Windows.h>
+#include "fileManipulations.h"
 
-// const char* kBinaryFileExtention = ".bin";
-const char* kBinaryFileExtention = ".txt";
+// const char* kBinaryFileExtention = ".txt";
+const char* kBinaryFileExtention = ".bin";
 const char* kSenderExe =  "sender.exe";
+
+const int MessageLength = 20 + 1;
 
 HANDLE START_PROCESS(char*);
 
@@ -36,9 +39,9 @@ int main()
         perror("Error! Failed creating a path string!\n");
         return ECANCELED;
     }
-    // FILE *fptr = fopen(path, "wb"); 
     
-    FILE *fptr = fopen(path, "w"); 
+    // FILE *fptr = fopen(path, "w"); 
+    FILE *fptr = fopen(path, "wb"); 
     fclose(fptr);
 
     int numberOfProcesses = 0;
@@ -112,9 +115,11 @@ int main()
     WaitForMultipleObjects(numberOfProcesses, readinessFlag, TRUE, INFINITE);
 
     // logic loop
+    char messageBuffer[MessageLength];
     int userChoice = -1;
     while (true)
     {
+        memset(messageBuffer, 0, MessageLength);
         printf_s("1. Read message\n2. Exit\n");
         scanf_s("%d", &userChoice);
         
@@ -130,10 +135,16 @@ int main()
         WaitForSingleObject(readSemaphore, INFINITE);
         WaitForSingleObject(mutex, INFINITE);
 
-        // fptr = fopen(path, "rb");
         
-        fptr = fopen(path, "r");
-        printf_s("\nNew message!\n");
+        // fptr = fopen(path, "r");
+        fptr = fopen(path, "rb");
+        fseek(fptr, 0, SEEK_SET);
+        // fscanf(fptr, "%s", messageBuffer);
+        fread(messageBuffer, MessageLength, 1, fptr);
+        printf_s("\nNew message:\t%s\n", messageBuffer);
+
+        
+
         fclose(fptr);
         ReleaseMutex(mutex);
         ReleaseSemaphore(writeSemaphore, 1, NULL);        

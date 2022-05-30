@@ -32,11 +32,10 @@ int main(int argc, char* argv[])
 
     SetEvent(readiness);
     
-    FILE* fptr = fopen(argv[1], "a");
+    // FILE* fptr = fopen(argv[1], "a");
+    FILE* fptr = fopen(argv[1], "ab");
     
-    // FILE* fptr = fopen(argv[1], "wb+");
     int userChoice = -1;
-
     char messageBuffer[21];
 
     while(true)
@@ -61,12 +60,19 @@ int main(int argc, char* argv[])
         WaitForSingleObject(writeSemaphore, INFINITE);
         WaitForSingleObject(mutex, INFINITE);
         
-        fprintf_s(fptr, "%s\n", messageBuffer);
+        // fopen(argv[1], "a");        
+        // fprintf_s(fptr, "%s\n", messageBuffer);
+        // fflush(fptr);
+
+        fptr = fopen(argv[1], "ab");
+        fwrite(messageBuffer, strlen(messageBuffer), 1, fptr);
+        fclose(fptr);
+
         printf_s("The Message: %s\n", messageBuffer);
 
         ReleaseMutex(mutex);
         ReleaseSemaphore(readSemaphore, 1, NULL);
-        printf_s("Message has been written successfully!\n");
+        printf_s("Message has been written successfully!\n\n");
     }
 
     fclose(fptr);
