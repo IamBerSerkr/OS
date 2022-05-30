@@ -9,7 +9,7 @@
 const char* kBinaryFileExtention = ".bin";
 const char* kSenderExe =  "sender.exe";
 
-const int MessageLength = 20 + 1;
+const int MessageLength = 20;
 
 HANDLE START_PROCESS(char*);
 
@@ -143,9 +143,19 @@ int main()
         fread(messageBuffer, MessageLength, 1, fptr);
         printf_s("\nNew message:\t%s\n", messageBuffer);
 
-        
-
+        // delete read message
+        fseek(fptr, 0, SEEK_END); // move cursor to the end of file
+        int n = ftell(fptr); // number of positions (bytes?) in a file
+        fseek(fptr, 0, SEEK_SET);
+        char *fileBuffer = (char*)malloc(sizeof(char) * n);
+        fread(fileBuffer, n, 1, fptr);
         fclose(fptr);
+
+        fptr = fopen(path, "wb");
+        fwrite(fileBuffer + MessageLength, n - MessageLength, 1, fptr);
+        fclose(fptr);
+
+        free(fileBuffer);
         ReleaseMutex(mutex);
         ReleaseSemaphore(writeSemaphore, 1, NULL);        
     }

@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     FILE* fptr = fopen(argv[1], "ab");
     
     int userChoice = -1;
-    char messageBuffer[21];
+    char messageBuffer[20];
 
     while(true)
     {
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
         // fflush(fptr);
 
         fptr = fopen(argv[1], "ab");
-        fwrite(messageBuffer, strlen(messageBuffer), 1, fptr);
+        fwrite(messageBuffer, 20, 1, fptr);
         fclose(fptr);
 
         printf_s("The Message: %s\n", messageBuffer);
