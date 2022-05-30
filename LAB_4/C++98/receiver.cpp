@@ -1,12 +1,11 @@
 #include <cstdio>
 #include <cstring>
-#include <cwchar>
 #include <cstdlib>
 #include <cerrno>
-#include <exception>
 #include <Windows.h>
 
-const char* kBinaryFileExtention = ".bin";
+// const char* kBinaryFileExtention = ".bin";
+const char* kBinaryFileExtention = ".txt";
 const char* kSenderExe =  "sender.exe";
 
 HANDLE START_PROCESS(char*);
@@ -31,13 +30,15 @@ int main()
     } while (numberOfRecords <= 0);
 
     char path[100 + 4 + 1];
-    int len = sprintf_s(path, "%s.bin", binFileNameBuffer);
+    int len = sprintf_s(path, "%s%s", binFileNameBuffer, kBinaryFileExtention);
     if (len == -1)
     {
         perror("Error! Failed creating a path string!\n");
         return ECANCELED;
     }
-    FILE *fptr = fopen(path, "wb"); 
+    // FILE *fptr = fopen(path, "wb"); 
+    
+    FILE *fptr = fopen(path, "w"); 
     fclose(fptr);
 
     int numberOfProcesses = 0;
@@ -55,7 +56,6 @@ int main()
 
     HANDLE* senderHandle = (HANDLE*)malloc(sizeof(HANDLE) * numberOfProcesses); 
 
-
     HANDLE mutex = CreateMutex(NULL, FALSE, "MUTEX");
     HANDLE writeSemaphore = CreateSemaphore(NULL, numberOfRecords, numberOfRecords, "WRITE_SEMAPHORE");
     HANDLE readSemaphore = CreateSemaphore(NULL, 0, numberOfRecords, "READ_SEMAPHORE");
@@ -70,7 +70,6 @@ int main()
     HANDLE* readinessFlag = (HANDLE*)malloc(sizeof(HANDLE) * numberOfProcesses);
 
     char charPathBuffer[256];
-    // mbstowcs(wcharPathBuffer, path, 256);
     len = sprintf_s(charPathBuffer, "%s", path);
     for (int i = 0; i < numberOfProcesses; i++)
     {
@@ -116,10 +115,10 @@ int main()
     int userChoice = -1;
     while (true)
     {
-        printf_s("1. Read message\n2. Exit");
+        printf_s("1. Read message\n2. Exit\n");
         scanf_s("%d", &userChoice);
         
-        if (userChoice != 1 || userChoice != 2)
+        if (userChoice != 1 && userChoice != 2)
         {
             printf_s("Invalid choice! Please choose between option 1 and 2:\n");
             continue;
@@ -131,8 +130,10 @@ int main()
         WaitForSingleObject(readSemaphore, INFINITE);
         WaitForSingleObject(mutex, INFINITE);
 
-        fptr = fopen(path, "rb");
-        printf_s("New message!");
+        // fptr = fopen(path, "rb");
+        
+        fptr = fopen(path, "r");
+        printf_s("\nNew message!\n");
         fclose(fptr);
         ReleaseMutex(mutex);
         ReleaseSemaphore(writeSemaphore, 1, NULL);        
