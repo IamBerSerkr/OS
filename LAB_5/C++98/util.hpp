@@ -2,8 +2,9 @@
 #include "Windows.h"
 #include <cstdio>
 #include <conio.h>
+#include "employee.hpp"
 
-const char* lpPipeName = "\\\\.\pipe\pipeName"; 
+const char* lpPipeName = "\\\\.\\pipe\\pipeName"; 
 
 
 HANDLE START_PROCESS(char* args)
@@ -41,7 +42,15 @@ void OPEN_PIPE(HANDLE& hPipe)
     }
 }
 
-DWORD WINAPI messaging(LPVOID ptr)
+DWORD WINAPI messaging(LPVOID p)
 {
+    printf("To quit press CTRL+Z\n");
+
+    // logic loop
+    while(true)
+    {
+        
+    }
+
     return 0;
 }
