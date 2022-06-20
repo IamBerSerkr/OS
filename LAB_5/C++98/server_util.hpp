@@ -32,6 +32,74 @@ HANDLE START_PROCESS(char* args)
     return processInformation.hProcess;
 }
 
+
+const int kErrorID = -1;
+
+// DWORD WINAPI client_messaging(LPVOID p)
+// {
+//     HANDLE* hPipe = (HANDLE*)p;
+//     printf("To quit press CTRL+Z\n");
+
+//     // logic loop
+//     while(true)
+//     {
+//         char commandBuffer[kCommandSize];
+//         fgets(commandBuffer, sizeof(kCommandSize), stdin);
+//         printf("\n%s\n", commandBuffer);
+
+//         if (commandBuffer[0] == CTRL_Z) 
+//         {
+//             printf("Quiting...");
+//             getch();
+//             break;
+//         }
+
+//         // sending the request
+//         DWORD bytesWritten;
+//         if (!WriteFile(*hPipe, commandBuffer, kCommandSize, &bytesWritten, NULL))
+//         {
+//             printf("Failed sending the message!\n");
+//             getch();
+//             return 1;
+//         }
+
+//         // receiving an answer
+//         employee targetEmployee;
+//         DWORD readBytes;
+
+//         if (!ReadFile(*hPipe, &targetEmployee, sizeof(employee), &readBytes, NULL))
+//         {
+//             printf("Error! Failed to receive the answer!\n");
+//             getch();
+//             continue;
+//         }
+
+//         if (targetEmployee.id == kErrorID)
+//         {
+//             printf("Employee not found or is being modyfied!\n");
+//             getch();
+//             continue;
+//         }
+
+//         printEmployee(targetEmployee);
+//         targetEmployee = ReadEmployeeData();
+        
+//         if (WriteFile(*hPipe, &targetEmployee, sizeof(employee), &bytesWritten, NULL))
+//         {
+//             printf("New data is parsed to the server.\n");
+//         }
+//         else
+//         {
+//             printf("Failed to send the information.\n");
+//             getch();
+//             break;
+//         }
+//     }
+
+//     return 0;
+// }
+
+
 DWORD WINAPI server_messaging(LPVOID p)
 {
     HANDLE* hPipe = (HANDLE*)p;
@@ -54,7 +122,7 @@ DWORD WINAPI server_messaging(LPVOID p)
             }
             else
             {
-                perror("Error while reading a message!\n");
+                printf("Error while reading a message!\n");
             }
             break;
         }
@@ -68,7 +136,7 @@ DWORD WINAPI server_messaging(LPVOID p)
             sscanf(commandBuffer, "%c %d", &mode, &id);
 
             EnterCriticalSection(&cs);
-            employee* targetEmployee = findEmployee(listOfEmployees, numOfEmployees, id);
+                employee* targetEmployee = findEmployee(listOfEmployees, numOfEmployees, id);
             LeaveCriticalSection(&cs);
 
             if (targetEmployee == NULL)
@@ -111,10 +179,30 @@ DWORD WINAPI server_messaging(LPVOID p)
                 printf("Failed sending the answer!\n");
             }
 
-            
+            // receiving a changed employee data
+            if (mode == 'w' && targetEmployee != errorEmployee)
+            {
+                if (ReadFile(*hPipe, targetEmployee, sizeof(employee), &readBytes, NULL))
+                {
+                    printf("Employee record changed!\n");
+                    isModifying[targetEmployee - listOfEmployees] = false;
+                    EnterCriticalSection(&cs);
+                        sortEmployees(listOfEmployees, numOfEmployees);
+                    LeaveCriticalSection(&cs);
+                }
+                else
+                {
+                    printf("Failed to read a message!\n");
+                    break;
+                }
+            }
         }
-
     }
+
+    FlushFileBuffers(*hPipe);
+    DisconnectNamedPipe(*hPipe);
+    free(errorEmployee);
+    
     return 0;
 }
 
@@ -132,7 +220,7 @@ void OPEN_PIPES(const int& numberOfClients)
 
         if (INVALID_HANDLE_VALUE == hPipe)
         {
-            perror("Failed to create a named pipe\n");
+            printf("Failed to create a named pipe\n");
             getch();
             return;
         }
@@ -142,7 +230,7 @@ void OPEN_PIPES(const int& numberOfClients)
             printf("No conncted clients!\n");
             break;
         }
-        hThreads[i] = CreateThread(NULL, 0, server_messaging, (LPVOID)hPipe, 0, NULL);
+        hThreads[i] = CreateThread(NULL, 0, server_messaging, (LPVOID)&hPipe, 0, NULL);
     }
 
     printf("All clients have connected to the pipe!\n");
@@ -156,3 +244,11 @@ void OPEN_PIPES(const int& numberOfClients)
     CloseHandle(hPipe);
     free(hThreads);
 }
+
+
+
+
+
+
+
+

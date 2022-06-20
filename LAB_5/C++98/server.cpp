@@ -22,7 +22,10 @@ int main(void)
     }
     WriteEmployeeData(filename, listOfEmployees, numOfEmployees);
     sortEmployees(listOfEmployees, numOfEmployees);
-
+    
+    printEmployees(listOfEmployees, numOfEmployees);
+    printf("\nPress any key to continue!\n");
+    getch();
 
     InitializeCriticalSection(&cs);
 
@@ -57,6 +60,11 @@ int main(void)
 
     // creating pipes
     OPEN_PIPES(clientCount);
+
+    printf("\n");
+    printEmployees(listOfEmployees, numOfEmployees);
+    printf("\nPress any key to exit!\n");
+    getch();
 
     DeleteCriticalSection(&cs);
 

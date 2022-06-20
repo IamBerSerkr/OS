@@ -1,9 +1,10 @@
 #include "libraries.hpp"
 
-
 const char* kClient = "client.exe";
 const char* lpPipeName = "\\\\.\\pipe\\pipeName"; 
 const int kCommandSize = 10;
+
+const int kErrorID = -1;
 
 DWORD WINAPI client_messaging(LPVOID p)
 {
@@ -14,10 +15,10 @@ DWORD WINAPI client_messaging(LPVOID p)
     while(true)
     {
         char commandBuffer[kCommandSize];
-        scanf("%s", commandBuffer);
-        // printf("\n%s\n", commandBuffer);
+        fgets(commandBuffer, sizeof(kCommandSize), stdin);
+        printf("\n%s\n", commandBuffer);
 
-        if (commandBuffer[0] = CTRL_Z) 
+        if (commandBuffer[0] == CTRL_Z) 
         {
             printf("Quiting...");
             getch();
@@ -28,14 +29,42 @@ DWORD WINAPI client_messaging(LPVOID p)
         DWORD bytesWritten;
         if (!WriteFile(*hPipe, commandBuffer, kCommandSize, &bytesWritten, NULL))
         {
-            perror("Failed sending the message!\n");
+            printf("Failed sending the message!\n");
             getch();
             return 1;
         }
 
         // receiving an answer
-        
+        employee targetEmployee;
+        DWORD readBytes;
 
+        if (!ReadFile(*hPipe, &targetEmployee, sizeof(employee), &readBytes, NULL))
+        {
+            printf("Error! Failed to receive the answer!\n");
+            getch();
+            continue;
+        }
+
+        if (targetEmployee.id == kErrorID)
+        {
+            printf("Employee not found or is being modyfied!\n");
+            getch();
+            continue;
+        }
+
+        printEmployee(targetEmployee);
+        targetEmployee = ReadEmployeeData();
+        
+        if (WriteFile(*hPipe, &targetEmployee, sizeof(employee), &bytesWritten, NULL))
+        {
+            printf("New data is parsed to the server.\n");
+        }
+        else
+        {
+            printf("Failed to send the information.\n");
+            getch();
+            break;
+        }
     }
 
     return 0;

@@ -20,6 +20,33 @@ employee ReadEmployeeData(const int& i)
     return newEmployee;
 }
 
+employee ReadEmployeeData(void)
+{
+    employee newEmployee;
+    printf("Enter Employee information:\n[id, name, hours]\n");
+
+    scanf("%d %s %lf", &newEmployee.id, newEmployee.name, &newEmployee.hours);
+
+    return newEmployee;
+}
+
+void printEmployee(const employee& obj)
+{
+    printf("id: %d; name: %s; work hours: %lf", obj.id, obj.name, obj.hours);
+    fflush(stdout);
+    return;
+}
+
+void printEmployees(employee* list, size_t size)
+{
+    for (int i = 0; i < size-1; i++)
+    {
+        printEmployee(list[i]);
+        printf("\n");
+    }
+    printEmployee(list[size-1]);
+    return;
+}
 
 void WriteEmployeeData(char* filename, employee* const & data, const int& size)
 {
@@ -45,3 +72,4 @@ employee* findEmployee(const employee* employees, size_t numberOfEmpoyees, const
     return (employee*)bsearch((const char*)&key, (const char*)(employees),
                               numberOfEmpoyees, sizeof(employee), employeeComparator);
 }
+
