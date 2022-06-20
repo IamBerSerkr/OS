@@ -29,3 +29,19 @@ void WriteEmployeeData(char* filename, employee* const & data, const int& size)
 
     fclose(fptr);
 }
+
+int employeeComparator(const void* lhs, const void* rhs)
+{
+    return ((employee*)lhs)->id - ((employee*)rhs)->id;
+}
+
+void sortEmployees(employee* employees, size_t numberOfEmpoyees){
+    qsort(employees, numberOfEmpoyees, sizeof(employee), employeeComparator);
+}
+
+employee* findEmployee(const employee* employees, size_t numberOfEmpoyees, const int& id){
+    employee key;
+    key.id = id;
+    return (employee*)bsearch((const char*)&key, (const char*)(employees),
+                              numberOfEmpoyees, sizeof(employee), employeeComparator);
+}

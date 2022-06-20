@@ -1,21 +1,23 @@
 #include <Windows.h>
 #include <conio.h>
 #include <cstdio>
-#include "util.hpp"
+#include "client_util.hpp"
 
 int main(int argc, char* argv[])
 {
+    printf("Howdy!\n");
+    getch();
     HANDLE hReadinessEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, argv[1]);
     HANDLE hStartEvent = OpenEvent(SYNCHRONIZE, FALSE, "START_ALL");
-    if(NULL == hStartEvent || NULL == hReadyEvent){
+    if(NULL == hStartEvent || NULL == hReadinessEvent){
         perror("Error in opening start/ready Event.\n");
         getch();
         return GetLastError();
     }
-    SetEvent(hReadyEvent);
-    printf("Process is ready.\n");
+    SetEvent(hReadinessEvent);
+    printf("The Process is ready.\n");
     WaitForSingleObject(hStartEvent, INFINITE);
-
+    printf("The process has just started.\n");
     // connecting to the pipe
     HANDLE hPipe = NULL;
     while (true)
@@ -36,7 +38,7 @@ int main(int argc, char* argv[])
     }
 
     printf("Connected to the pipe!\n");
-    messaging(hPipe);    
+    client_messaging(hPipe);    
 
     CloseHandle(hPipe);
     CloseHandle(hReadinessEvent);
