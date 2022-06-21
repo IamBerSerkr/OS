@@ -8,15 +8,18 @@ const int kErrorID = -1;
 
 DWORD WINAPI client_messaging(LPVOID p)
 {
-    HANDLE* hPipe = (HANDLE*)p;
+    HANDLE hPipe = (HANDLE)p;
     printf("To quit press CTRL+Z\n");
 
     // logic loop
     while(true)
     {
         char commandBuffer[kCommandSize];
+        printf("\nEnter r/w (read/write) followed by an ID of the employee:\n");
         fgets(commandBuffer, sizeof(kCommandSize), stdin);
         printf("\n%s\n", commandBuffer);
+
+        getchar();
 
         if (commandBuffer[0] == CTRL_Z) 
         {
@@ -27,7 +30,7 @@ DWORD WINAPI client_messaging(LPVOID p)
 
         // sending the request
         DWORD bytesWritten;
-        if (!WriteFile(*hPipe, commandBuffer, kCommandSize, &bytesWritten, NULL))
+        if (!WriteFile(hPipe, commandBuffer, kCommandSize, &bytesWritten, NULL))
         {
             printf("Failed sending the message!\n");
             getch();
@@ -37,33 +40,39 @@ DWORD WINAPI client_messaging(LPVOID p)
         // receiving an answer
         employee targetEmployee;
         DWORD readBytes;
-
-        if (!ReadFile(*hPipe, &targetEmployee, sizeof(employee), &readBytes, NULL))
+        if (!ReadFile(hPipe, &targetEmployee, sizeof(targetEmployee), &readBytes, NULL))
         {
             printf("Error! Failed to receive the answer!\n");
-            getch();
             continue;
-        }
-
-        if (targetEmployee.id == kErrorID)
-        {
-            printf("Employee not found or is being modyfied!\n");
-            getch();
-            continue;
-        }
-
-        printEmployee(targetEmployee);
-        targetEmployee = ReadEmployeeData();
-        
-        if (WriteFile(*hPipe, &targetEmployee, sizeof(employee), &bytesWritten, NULL))
-        {
-            printf("New data is parsed to the server.\n");
         }
         else
         {
-            printf("Failed to send the information.\n");
-            getch();
-            break;
+                if (targetEmployee.id == kErrorID)
+            {
+                printf("Employee not found or is being modyfied!\n");
+                continue;
+            }
+            
+            printEmployee(targetEmployee);
+            printf("\n");
+
+            
+            if (commandBuffer[0] != 'w')
+            {
+                continue;
+            }
+            targetEmployee = ReadEmployeeData();
+            
+            if (WriteFile(hPipe, &targetEmployee, sizeof(targetEmployee), &bytesWritten, NULL))
+            {
+                printf("New data is parsed to the server.\n");
+            }
+            else
+            {
+                printf("Failed to send the information.\n");
+                getch();
+                break;
+            }
         }
     }
 

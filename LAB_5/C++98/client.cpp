@@ -1,11 +1,11 @@
-// #include "client_util.hpp"
-#include "server_util.hpp"
+#include "client_util.hpp"
 
 int main(int argc, char* argv[])
 {
     HANDLE hReadinessEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, argv[1]);
     HANDLE hStartEvent = OpenEvent(SYNCHRONIZE, FALSE, "START_ALL");
-    if(NULL == hStartEvent || NULL == hReadinessEvent){
+    if(hStartEvent == NULL|| hReadinessEvent == NULL)
+    {
         perror("Error in opening start/ready Event.\n");
         getch();
         return GetLastError();
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
     }
 
     printf("Connected to the pipe!\n");
-    client_messaging(&hPipe);    
+    client_messaging(hPipe);    
 
     CloseHandle(hPipe);
     CloseHandle(hReadinessEvent);

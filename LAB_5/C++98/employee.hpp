@@ -23,7 +23,7 @@ employee ReadEmployeeData(const int& i)
 employee ReadEmployeeData(void)
 {
     employee newEmployee;
-    printf("Enter Employee information:\n[id, name, hours]\n");
+    printf("\nEnter Employee information:\n[id, name, hours]\n");
 
     scanf("%d %s %lf", &newEmployee.id, newEmployee.name, &newEmployee.hours);
 

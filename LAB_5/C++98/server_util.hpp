@@ -32,77 +32,11 @@ HANDLE START_PROCESS(char* args)
     return processInformation.hProcess;
 }
 
-
 const int kErrorID = -1;
-
-// DWORD WINAPI client_messaging(LPVOID p)
-// {
-//     HANDLE* hPipe = (HANDLE*)p;
-//     printf("To quit press CTRL+Z\n");
-
-//     // logic loop
-//     while(true)
-//     {
-//         char commandBuffer[kCommandSize];
-//         fgets(commandBuffer, sizeof(kCommandSize), stdin);
-//         printf("\n%s\n", commandBuffer);
-
-//         if (commandBuffer[0] == CTRL_Z) 
-//         {
-//             printf("Quiting...");
-//             getch();
-//             break;
-//         }
-
-//         // sending the request
-//         DWORD bytesWritten;
-//         if (!WriteFile(*hPipe, commandBuffer, kCommandSize, &bytesWritten, NULL))
-//         {
-//             printf("Failed sending the message!\n");
-//             getch();
-//             return 1;
-//         }
-
-//         // receiving an answer
-//         employee targetEmployee;
-//         DWORD readBytes;
-
-//         if (!ReadFile(*hPipe, &targetEmployee, sizeof(employee), &readBytes, NULL))
-//         {
-//             printf("Error! Failed to receive the answer!\n");
-//             getch();
-//             continue;
-//         }
-
-//         if (targetEmployee.id == kErrorID)
-//         {
-//             printf("Employee not found or is being modyfied!\n");
-//             getch();
-//             continue;
-//         }
-
-//         printEmployee(targetEmployee);
-//         targetEmployee = ReadEmployeeData();
-        
-//         if (WriteFile(*hPipe, &targetEmployee, sizeof(employee), &bytesWritten, NULL))
-//         {
-//             printf("New data is parsed to the server.\n");
-//         }
-//         else
-//         {
-//             printf("Failed to send the information.\n");
-//             getch();
-//             break;
-//         }
-//     }
-
-//     return 0;
-// }
-
 
 DWORD WINAPI server_messaging(LPVOID p)
 {
-    HANDLE* hPipe = (HANDLE*)p;
+    HANDLE hPipe = (HANDLE)p;
 
     employee* errorEmployee = (employee*)malloc(sizeof(employee));
     errorEmployee->id = -1;
@@ -113,7 +47,7 @@ DWORD WINAPI server_messaging(LPVOID p)
         // receiving a request
         DWORD readBytes;
         char commandBuffer[kCommandSize];
-        if (!ReadFile(*hPipe, commandBuffer, kCommandSize, &readBytes, NULL))
+        if (!ReadFile(hPipe, commandBuffer, kCommandSize, &readBytes, NULL))
         {
             DWORD lastError = GetLastError();
             if (lastError == ERROR_BROKEN_PIPE)
@@ -134,7 +68,7 @@ DWORD WINAPI server_messaging(LPVOID p)
             int id = -1;
 
             sscanf(commandBuffer, "%c %d", &mode, &id);
-
+            
             EnterCriticalSection(&cs);
                 employee* targetEmployee = findEmployee(listOfEmployees, numOfEmployees, id);
             LeaveCriticalSection(&cs);
@@ -160,7 +94,7 @@ DWORD WINAPI server_messaging(LPVOID p)
                         break;
                     case 'w':
                         printf("Modidy request!\n");
-                        isModifying[arrIndex];
+                        isModifying[arrIndex] = true;
                         break;
                     default:
                         printf("Unknown request!\n");
@@ -170,7 +104,7 @@ DWORD WINAPI server_messaging(LPVOID p)
                 }
             }
             DWORD bytesWritten;
-            if (WriteFile(*hPipe, targetEmployee, sizeof(employee), &bytesWritten, NULL))
+            if (WriteFile(hPipe, targetEmployee, sizeof(employee), &bytesWritten, NULL))
             {
                 printf("The Answer is sent!\n");
             }
@@ -182,7 +116,7 @@ DWORD WINAPI server_messaging(LPVOID p)
             // receiving a changed employee data
             if (mode == 'w' && targetEmployee != errorEmployee)
             {
-                if (ReadFile(*hPipe, targetEmployee, sizeof(employee), &readBytes, NULL))
+                if (ReadFile(hPipe, targetEmployee, sizeof(employee), &readBytes, NULL))
                 {
                     printf("Employee record changed!\n");
                     isModifying[targetEmployee - listOfEmployees] = false;
@@ -199,8 +133,9 @@ DWORD WINAPI server_messaging(LPVOID p)
         }
     }
 
-    FlushFileBuffers(*hPipe);
-    DisconnectNamedPipe(*hPipe);
+    FlushFileBuffers(hPipe);
+    DisconnectNamedPipe(hPipe);
+    CloseHandle(hPipe);
     free(errorEmployee);
     
     return 0;
@@ -227,10 +162,11 @@ void OPEN_PIPES(const int& numberOfClients)
 
         if (!ConnectNamedPipe(hPipe, NULL))
         {
-            printf("No conncted clients!\n");
+            printf("No connected clients!\n");
+            getch();
             break;
         }
-        hThreads[i] = CreateThread(NULL, 0, server_messaging, (LPVOID)&hPipe, 0, NULL);
+        hThreads[i] = CreateThread(NULL, 0, server_messaging, (LPVOID)hPipe, 0, NULL);
     }
 
     printf("All clients have connected to the pipe!\n");

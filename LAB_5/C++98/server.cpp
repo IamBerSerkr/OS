@@ -23,9 +23,9 @@ int main(void)
     WriteEmployeeData(filename, listOfEmployees, numOfEmployees);
     sortEmployees(listOfEmployees, numOfEmployees);
     
-    printEmployees(listOfEmployees, numOfEmployees);
-    printf("\nPress any key to continue!\n");
-    getch();
+    // printEmployees(listOfEmployees, numOfEmployees);
+    // printf("\nPress any key to continue!\n");
+    // getch();
 
     InitializeCriticalSection(&cs);
 
@@ -65,6 +65,8 @@ int main(void)
     printEmployees(listOfEmployees, numOfEmployees);
     printf("\nPress any key to exit!\n");
     getch();
+    
+    WriteEmployeeData(filename, listOfEmployees, numOfEmployees);
 
     DeleteCriticalSection(&cs);
 
