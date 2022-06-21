@@ -21,7 +21,7 @@ DWORD WINAPI client_messaging(LPVOID p)
 
         getchar();
 
-        if (commandBuffer[0] == CTRL_Z) 
+        if (CTRL_Z == commandBuffer[0]) 
         {
             printf("Quiting...");
             getch();
@@ -47,7 +47,7 @@ DWORD WINAPI client_messaging(LPVOID p)
         }
         else
         {
-                if (targetEmployee.id == kErrorID)
+                if (kErrorID == targetEmployee.id)
             {
                 printf("Employee not found or is being modyfied!\n");
                 continue;
@@ -57,7 +57,7 @@ DWORD WINAPI client_messaging(LPVOID p)
             printf("\n");
 
 
-            if (commandBuffer[0] != 'w')
+            if ( 'w' != commandBuffer[0])
             {
                 continue;
             }

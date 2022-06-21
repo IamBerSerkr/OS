@@ -17,7 +17,7 @@ int main()
         printf("Enter the size of an array:\t");
         scanf("%d", &dimentions);
     } 
-    while (dimentions <= 0);
+    while (0 >= dimentions);
     
     int *arr = createNewArray(dimentions);
        
@@ -27,7 +27,7 @@ int main()
         printf("Enter a number of marker threads:\t");
         scanf("%d", &numberOfMarkers);
     } 
-    while (numberOfMarkers <= 0);
+    while (0 >= numberOfMarkers);
     
     InitializeCriticalSection(&cs);
         
@@ -38,7 +38,7 @@ int main()
     HANDLE* halteredThreads = new HANDLE[numberOfMarkers];
     
     HANDLE start = CreateEvent(NULL, TRUE, FALSE, NULL);
-    if (start == NULL)
+    if (NULL == start)
     {
         printf("Failed Starting an event!\n");
         return GetLastError();
@@ -74,7 +74,7 @@ int main()
 
         int id = -1;
         
-        while (id <= 0 || id > numberOfMarkers)
+        while (0 >= id|| id > numberOfMarkers)
         {
             printf("\nEnter an id of a maker thread to kill:\t");
             scanf("%d", &id);
@@ -191,7 +191,7 @@ DWORD WINAPI markerFucntion(LPVOID params)
 
             SetEvent(info->Stop);
             int mainsResponse = WaitForMultipleObjects(2, info->TerminateOrContinue, FALSE, INFINITE) - WAIT_OBJECT_0;
-            if (mainsResponse == 0)
+            if (0 == mainsResponse)
             {
                 halt_thread = true;
             }

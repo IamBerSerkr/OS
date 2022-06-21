@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <cerrno>
 #include <Windows.h>
-#include "fileManipulations.h"
 
 const char* kBinaryFileExtention = ".bin";
 const char* kSenderExe =  "sender.exe";
@@ -33,7 +32,7 @@ int main()
 
     char path[100 + 4 + 1];
     int len = sprintf_s(path, "%s%s", binFileNameBuffer, kBinaryFileExtention);
-    if (len == -1)
+    if (-1 == len)
     {
         perror("Error! Failed creating a path string!\n");
         return ECANCELED;
@@ -61,7 +60,7 @@ int main()
     HANDLE writeSemaphore = CreateSemaphore(NULL, numberOfRecords, numberOfRecords, "WRITE_SEMAPHORE");
     HANDLE readSemaphore = CreateSemaphore(NULL, 0, numberOfRecords, "READ_SEMAPHORE");
     
-   if ((mutex && writeSemaphore && readSemaphore) == NULL)
+   if (NULL ==(mutex && writeSemaphore && readSemaphore))
    {
        perror("Error! Failed creating synchronization objects\n");
        return GetLastError();
@@ -77,7 +76,7 @@ int main()
         char commandLineArguments[250];
         len = sprintf_s(commandLineArguments, "%s %s %d %d", 
             kSenderExe, charPathBuffer, numberOfRecords, i);
-        if (len == -1)
+        if (-1 == len)
         {
             perror("Error! Failed creating a command line arguments string!\n");
             return ECANCELED;
@@ -87,13 +86,13 @@ int main()
         // creating ready 
         char readinessEventName[256];
         len = sprintf_s(readinessEventName, "%d READY", i);
-        if (len == -1)
+        if (-1 == len)
         {
             perror("Error! Failed creating a readiness event name string!\n");
             return ECANCELED;
         }
         HANDLE ready = CreateEvent(NULL, FALSE, FALSE, readinessEventName);
-        if (ready == NULL)
+        if (NULL == ready)
         {
             perror("Error! Failed creating event!\n");
             return GetLastError();
@@ -121,12 +120,12 @@ int main()
         printf_s("1. Read message\n2. Exit\n");
         scanf_s("%d", &userChoice);
         
-        if (userChoice != 1 && userChoice != 2)
+        if (1 != userChoice && 2 != userChoice)
         {
             printf_s("Invalid choice! Please choose between option 1 and 2:\n");
             continue;
         }
-        if (userChoice == 2)
+        if (2 == userChoice)
         {
             break;
         }

@@ -14,7 +14,7 @@ int main()
     int size = 0;
     cout << "Enter the dimentions of an array: ";
     cin >> size;
-    if (size <= 0)
+    if (0 >= size)
     {
         throw std::runtime_error("Error: Invalid paraments!\n");
         return -1;

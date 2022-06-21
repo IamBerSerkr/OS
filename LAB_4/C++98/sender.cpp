@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
     char readinessEventName[256];
     int len = sprintf_s(readinessEventName, "%s READY", argv[3]);
     // printf_s("%s\n", &readinessEventName);
-    if (len == -1)
+    if (-1 == len)
     {
         perror("Error! Failed creating a readiness event name string!\n");
         return ECANCELED;
@@ -43,13 +43,12 @@ int main(int argc, char* argv[])
         printf_s("1. Write message\n2. Exit\n");
         scanf_s("%d", &userChoice);
         
-        if (userChoice != 1 && 
-        userChoice != 2)
+        if (-1  != userChoice && 2 != userChoice)
         {
             printf_s("Invalid choice! Please choose between option 1 and 2:\n");
             continue;
         }
-        if (userChoice == 2)
+        if (2 == userChoice)
         {
             break;
         }

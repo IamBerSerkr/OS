@@ -50,7 +50,7 @@ DWORD WINAPI server_messaging(LPVOID p)
         if (!ReadFile(hPipe, commandBuffer, kCommandSize, &readBytes, NULL))
         {
             DWORD lastError = GetLastError();
-            if (lastError == ERROR_BROKEN_PIPE)
+            if (ERROR_BROKEN_PIPE == lastError)
             {
                 printf("Clinet disconnected!\n");
             }
@@ -73,7 +73,7 @@ DWORD WINAPI server_messaging(LPVOID p)
                 employee* targetEmployee = findEmployee(listOfEmployees, numOfEmployees, id);
             LeaveCriticalSection(&cs);
 
-            if (targetEmployee == NULL)
+            if (NULL == targetEmployee)
             {
                 targetEmployee = errorEmployee;
             }
@@ -114,7 +114,7 @@ DWORD WINAPI server_messaging(LPVOID p)
             }
 
             // receiving a changed employee data
-            if (mode == 'w' && targetEmployee != errorEmployee)
+            if ('w' == mode && targetEmployee != errorEmployee)
             {
                 if (ReadFile(hPipe, targetEmployee, sizeof(employee), &readBytes, NULL))
                 {

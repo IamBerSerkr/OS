@@ -4,7 +4,7 @@ int main(int argc, char* argv[])
 {
     HANDLE hReadinessEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, argv[1]);
     HANDLE hStartEvent = OpenEvent(SYNCHRONIZE, FALSE, "START_ALL");
-    if(hStartEvent == NULL|| hReadinessEvent == NULL)
+    if(NULL == hStartEvent || NULL == hReadinessEvent)
     {
         perror("Error in opening start/ready Event.\n");
         getch();

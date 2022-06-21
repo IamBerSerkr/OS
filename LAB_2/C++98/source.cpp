@@ -14,7 +14,7 @@ int main(void)
 
     printf("Enter the dimentions of an array: ");
     scanf("%d", &size);
-    if (size <= 0)
+    if (0 >= size)
     {   
         errno = EDOM;
         perror("Error:\t");
@@ -22,7 +22,7 @@ int main(void)
     }
 
     double *arr = (double*)malloc(sizeof(double) * size);
-    if (arr == NULL)
+    if (NULL == arr)
     {
         errno = ENOMEM;
         perror("Error:\t");
@@ -44,7 +44,7 @@ int main(void)
 
     hThread_min_max = CreateThread(NULL, 0, min_max, (void*)my_array, 0, &IDThread_min_max);    
     hThread_average = CreateThread(NULL, 0, average, (void*)my_array, 0, &IDThread_average);
-    if (hThread_min_max == NULL || hThread_average == NULL) {
+    if (NULL == hThread_min_max || NULL == hThread_average) {
 		return GetLastError();
 	}
     WaitForSingleObject(hThread_min_max, INFINITE);
