@@ -3,8 +3,8 @@
 const char* kClient = "client.exe";
 const char* lpPipeName = "\\\\.\\pipe\\pipeName"; 
 const int kCommandSize = 10;
-
 const int kErrorID = -1;
+
 
 DWORD WINAPI client_messaging(LPVOID p)
 {
@@ -56,7 +56,7 @@ DWORD WINAPI client_messaging(LPVOID p)
             printEmployee(targetEmployee);
             printf("\n");
 
-            
+
             if (commandBuffer[0] != 'w')
             {
                 continue;

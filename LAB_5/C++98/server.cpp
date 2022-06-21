@@ -22,14 +22,10 @@ int main(void)
     }
     WriteEmployeeData(filename, listOfEmployees, numOfEmployees);
     sortEmployees(listOfEmployees, numOfEmployees);
-    
-    // printEmployees(listOfEmployees, numOfEmployees);
-    // printf("\nPress any key to continue!\n");
-    // getch();
-
+   
     InitializeCriticalSection(&cs);
 
-    int clientCount = 2;
+    int clientCount = 2 + rand() % 3;
     
     HANDLE hStartALLClients = CreateEvent(NULL, TRUE, FALSE, "START_ALL");
 
