@@ -3,10 +3,13 @@
 #include <thread>
 #include "threadInfo.h"
 
+
 using std::cin;
 using std::cout;
 using std::vector;
 using std::thread;
+
+const int kSleepTime = 5;
 
 std::mutex markerMutex;
 std::mutex startMutex;
@@ -14,6 +17,8 @@ std::mutex stateMutex;
 
 std::condition_variable start;
 std::condition_variable stateChanged;
+
+vector<int> arr;
 
 bool isReady = false;
 vector<bool> halteredThreads;
@@ -25,12 +30,13 @@ void printArray(const vector<int>&);
 
 void markerFunction(threadInfo*);
 
-bool isValidID(const int&);
+bool checkResult(void);
+
 
 int main(void)
 {
 	int sizeOfArray = generateRandomInt(5, 15);
-	vector<int> arr(0, sizeOfArray);
+	arr = vector<int>(sizeOfArray, 0);
 
 	printArray(arr);
 
@@ -38,10 +44,17 @@ int main(void)
 	vector<thread> markers;
 	vector<threadInfo*> markerInfo;
 
-	vector<bool> terminatedThreads(false, numberOfMarkers);
+	halteredThreads = vector<bool>(numberOfMarkers, false);
+	vector<bool> terminatedThreads(numberOfMarkers, false);
 	for (int i = 0; i < numberOfMarkers; i++)
 	{
-		markerInfo.push_back(new threadInfo(arr, sizeOfArray, i + 1));
+		threadInfo* tmp = new threadInfo();
+		tmp->size = sizeOfArray;
+		tmp->idx = i + 1;
+		tmp->actions[0] = false;
+		tmp->actions[1] = false;
+
+		markerInfo.push_back(tmp);
 		markers.push_back(thread(markerFunction, markerInfo.back()));
 	}
 
@@ -72,7 +85,7 @@ int main(void)
 		int userInputID = -1;
 		cin >> userInputID;
 
-		if (!isValidID(userInputID))
+		if (0 >= userInputID || userInputID > numberOfMarkers)
 		{
 			cout << "Invalid ID! Please enter valid id!\n";
 			continue;
@@ -107,5 +120,111 @@ int main(void)
 	}
 
 	cout << "All marker threads have been eliminated!\n";
+
+	cout << "[CHECK] If the program works as expected, than the result array must contain only zeros.\n";
+	bool isValidResult = checkResult();
+	if (isValidResult)
+	{
+		cout << "Program completed succesfully!\n";
+	}
+	else
+	{
+		cout << "Program failed to produce the correct result!\n";
+	}
 	return 0;
+}
+
+
+int generateRandomInt(const int& lowerBound, const int& upperBound)
+{
+	srand(static_cast<unsigned int>(time(NULL)));
+	return lowerBound + rand() % (upperBound - lowerBound + 1);
+}
+
+
+void printArray(const vector<int>& arr)
+{
+	std::lock_guard<std::mutex> lock(markerMutex);
+	for (const int& elem : arr)
+	{
+		cout << elem << "\t";
+	}
+	cout << "\n";
+	return;
+}
+
+
+void markerFunction(threadInfo* args)
+{
+	std::unique_lock<std::mutex> startLock(startMutex);
+	start.wait(startLock, []()->bool {
+		return isReady;
+	});
+	startLock.unlock();
+
+	cout << "Thread " << args->idx << " has started!\n";
+	
+	srand(args->idx);
+	int count = 0;
+	
+	// logic loop
+	while (true)
+	{
+		std::unique_lock<std::mutex> lock(markerMutex);
+		int i = rand() % args->size;
+		if (0 == arr[i])
+		{
+			std::this_thread::sleep_for(
+				std::chrono::milliseconds(kSleepTime));
+			cout << "Thread #" << args->idx << " changed " <<
+				arr[i] << " (index " << i << ") to" << args->idx << "\n";
+				arr[i] = args->idx;
+
+			count++;
+			lock.unlock();
+			std::this_thread::sleep_for(
+				std::chrono::milliseconds(kSleepTime));
+		}
+		else
+		{
+			cout << "[Report]\tThread #" << args->idx
+				<< ": Number of marked elements: " << count <<
+				" Can not mark the element with index " << i << "\n";
+			lock.unlock();
+			halteredThreads[args->idx - 1] = true;
+			stateChanged.notify_all();
+			std::unique_lock<std::mutex> actionLock(args->actionMutex);
+			args->start.wait(actionLock, [args]()->bool {
+				return args->actions[1] || args->actions[0];
+			});
+			if (args->actions[1])
+			{
+				for (int& elem : arr)
+				{
+					if (elem == args->idx)
+					{
+						elem = 0;
+					}
+				}
+				cout << "Thread #" << args->idx << "has been terminated.\n";
+				break;
+			}
+			args->actions[0] = false;
+		}
+	}
+
+	return;
+}
+
+
+bool checkResult(void)
+{
+	for (const int& elem : arr)
+	{
+		if (0 != elem)
+		{
+			return false;
+		}
+	}
+	return true;
 }
